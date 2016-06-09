@@ -1,0 +1,42 @@
+{
+  "private": true,
+
+  "main": "js/main.js",
+
+  "dependencies": {
+    "bootstrap": "^3.0.0",
+    "director": "^1.2.8",
+
+    "rsvp": "^3.0.0",
+    "rsvp-ajax": "1.0.2"
+  },
+
+  "devDependencies": {
+    "babelify": "^7.2.0",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-preset-stage-0": "^6.5.0",
+
+    "watchify": "^3.4.0",
+
+    "uglify": "0.1.5",
+
+    "babel-jest": "^9.0.0",
+    "jest-cli": "*"
+  },
+
+  "scripts": {
+    "test": "jest"
+  },
+
+  "jest": {
+    "modulePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "preprocessorIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testPathDirs": [
+      "<rootDir>/js"
+    ]
+  }
+}
