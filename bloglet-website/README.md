@@ -4,8 +4,8 @@
 Create a copy of core.properties and add the following:
 
 ```
-blogletWebsite.web.freemarkerPath=file:/PATH-TO/htmlsample/experiments/bloglet/bloglet-static-content/freemarker
-brikar.dev.overrideStaticPath=/PATH-TO/htmlsample/experiments/bloglet/bloglet-static-content/target/release/blogletWebsite/web/static
+blogletWebsite.web.freemarkerPath=file:/PATH-TO/bloglet/bloglet-static-content/freemarker
+brikar.dev.overrideStaticPath=/PATH-TO/bloglet/bloglet-static-content/target/release/blogletWebsite/web/static
 
 brikar.settings.gracefulShutdownMillis=100
 ```
