@@ -10,13 +10,13 @@ function setOnclickIfPresent(id, handler) {
 
 function setHandlers() {
   setOnclickIfPresent('btn-load-more', () => {
-    const entries = document.getElementsByClassName('book-entry');
+    const entries = document.getElementsByClassName('post-entry');
 
-    const bookContainerUi = document.getElementById('book-container');
+    const bookContainerUi = document.getElementById('post-container');
 
     let promise = requestObject({
       method: 'GET',
-      url: '/g/part/books?offset=' + entries.length,
+      url: '/g/part/posts?offset=' + entries.length,
       accept: 'text/html',
       responseType: 'text'
     });

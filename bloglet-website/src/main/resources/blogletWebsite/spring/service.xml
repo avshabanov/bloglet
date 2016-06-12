@@ -4,9 +4,12 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
   <import resource="classpath:/spring/default-service-base.xml"/>
 
+  <import resource="init/init-${blogletWebsite.init.mode}.xml"/>
+  <import resource="dao.xml"/>
+
   <!-- Spring Security -->
   <import resource="security.xml"/>
   <import resource="auth/auth-local.xml"/>
 
-  <bean class="bloglet.website.service.support.DefaultBookService" />
+  <bean class="bloglet.website.service.support.DefaultBlogService" autowire="constructor" />
 </beans>

@@ -94,7 +94,21 @@
       <artifactId>spring-security-core</artifactId>
     </dependency>
 
-    <!-- Tupl Persistence -->
+    <!-- Protobuf -->
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+
+    <!-- Tupl & Tupl Support -->
+    <dependency>
+      <groupId>com.truward.tupl</groupId>
+      <artifactId>tupl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.truward.tupl</groupId>
+      <artifactId>tupl-support</artifactId>
+    </dependency>
 
     <!-- test scope -->
     <dependency>
@@ -113,6 +127,33 @@
         <configuration>
           <mainClass>${launcher.mainClass}</mainClass>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>delombok</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>delombok</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>test-delombok</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>testDelombok</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${protobuf-maven-plugin.version}</version>
       </plugin>
     </plugins>
   </build>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- Database and transaction manager -->
+  <bean id="blogletWebsite.dao.database" class="bloglet.website.dao.DatabaseFactory">
+    <constructor-arg value="${blogletWebsite.dao.databasePath}"/>
+  </bean>
+
+  <bean id="blogletWebsite.dao.txManager" class="com.truward.tupl.support.transaction.support.StandardTuplTransactionManager">
+    <constructor-arg ref="blogletWebsite.dao.database"/>
+  </bean>
+
+  <!-- DAO -->
+  <bean id="blogletWebsite.dao.tagEntryDao" class="bloglet.website.dao.support.DefaultTagEntryDao">
+    <constructor-arg ref="blogletWebsite.dao.txManager"/>
+  </bean>
+
+  <bean id="blogletWebsite.dao.blogEntryDao" class="bloglet.website.dao.support.DefaultBlogEntryDao">
+    <constructor-arg ref="blogletWebsite.dao.txManager"/>
+  </bean>
+</beans>

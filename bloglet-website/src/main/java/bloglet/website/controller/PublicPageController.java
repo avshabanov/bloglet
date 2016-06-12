@@ -1,16 +1,18 @@
 package bloglet.website.controller;
 
+import bloglet.model.Bloglet;
+import bloglet.website.service.BlogService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import bloglet.website.service.BookService;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Controller
 @RequestMapping("/g")
 public final class PublicPageController {
-  @Resource BookService bookService;
+  @Resource BlogService blogService;
 
   @RequestMapping("/login")
   public String login() {
@@ -19,8 +21,8 @@ public final class PublicPageController {
 
   @RequestMapping("/index")
   public ModelAndView index() {
-    return new ModelAndView("page/index",
-        "books", bookService.getBooks(0, BookService.DEFAULT_OFFSET));
+    final List<Bloglet.BlogPost> posts = blogService.getBlogPosts(0, BlogService.MAX_LIMIT);
+    return new ModelAndView("page/index", "posts", posts);
   }
 
   @RequestMapping("/about")

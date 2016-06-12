@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "bloglet-persistence.proto";
+
+package bloglet.model;
+
+option java_package = "bloglet.model";
+option java_outer_classname = "Bloglet";
+
+
+message Tag {
+  string id = 1;
+  string name = 2;
+}
+
+message BlogPost {
+  string id = 1;
+  BlogEntry contents = 2;
+  repeated Tag tags = 3;
+}
