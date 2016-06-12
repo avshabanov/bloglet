@@ -7,13 +7,10 @@ import bloglet.website.dao.support.DefaultTagEntryDao;
 import bloglet.website.service.support.DefaultBlogService;
 import com.truward.tupl.support.transaction.TuplTransactionManager;
 import com.truward.tupl.support.transaction.support.StandardTuplTransactionManager;
-import org.cojen.tupl.Database;
-import org.cojen.tupl.DatabaseConfig;
-import org.cojen.tupl.DurabilityMode;
+import com.truward.tupl.test.TuplTestUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -31,11 +28,7 @@ public final class BlogServiceTest {
 
   @Before
   public void init() throws IOException {
-    final TuplTransactionManager txManager = new StandardTuplTransactionManager(Database.open(new DatabaseConfig()
-        .baseFilePath(File.createTempFile("Test-", "-db").getPath())
-        .maxCacheSize(100_000L)
-        .durabilityMode(DurabilityMode.NO_SYNC)));
-
+    final TuplTransactionManager txManager = new StandardTuplTransactionManager(TuplTestUtil.createTempDatabase());
     blogService = new DefaultBlogService(txManager,
         new DefaultBlogEntryDao(txManager), new DefaultTagEntryDao(txManager));
   }

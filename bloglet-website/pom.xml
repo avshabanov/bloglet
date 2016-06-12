@@ -109,11 +109,19 @@
       <groupId>com.truward.tupl</groupId>
       <artifactId>tupl-support</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.truward.tupl</groupId>
+      <artifactId>tupl-protobuf-support</artifactId>
+    </dependency>
 
     <!-- test scope -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.truward.tupl</groupId>
+      <artifactId>tupl-test-support</artifactId>
     </dependency>
   </dependencies>
 

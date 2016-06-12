@@ -25,6 +25,8 @@
 
     <brikar.version>1.4.23</brikar.version>
 
+    <tupl-support.version>1.0.2</tupl-support.version>
+
     <!--  compiler settings -->
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -97,7 +99,12 @@
       <dependency>
         <groupId>com.truward.tupl</groupId>
         <artifactId>tupl-support</artifactId>
-        <version>1.0.1</version> <!-- TODO: release version -->
+        <version>${tupl-support.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.tupl</groupId>
+        <artifactId>tupl-protobuf-support</artifactId>
+        <version>${tupl-support.version}</version>
       </dependency>
 
       <!-- Test scope -->
@@ -111,6 +118,12 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
         <version>1.9.0</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.tupl</groupId>
+        <artifactId>tupl-test-support</artifactId>
+        <version>${tupl-support.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
