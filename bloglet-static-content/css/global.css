@@ -6,3 +6,7 @@ body {
 .load-more-container {
   padding: 1.5rem;
 }
+
+.post-entry .entry-footer {
+  overflow: hidden;
+}

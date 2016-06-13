@@ -15,10 +15,13 @@ message BlogEntry {
   string title = 3;
   string shortContents = 4;
   string contents = 5;
-  repeated string tagIds = 6;
+  repeated string tagIds = 6; // All the tags, associated with a given blog entry
 }
 
 message TagEntry {
   string name = 1;
-  repeated string blogEntryIds = 2;
+
+  // TODO: Note, that this will not work efficiently when blog size will grow and thousands of
+  // TODO: (continued) blog entries will be associated with a given tag
+  repeated string blogEntryIds = 2; // All the blog entries, associated with a given tag
 }

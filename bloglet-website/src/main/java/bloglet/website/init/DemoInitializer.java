@@ -19,9 +19,11 @@ public final class DemoInitializer {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final BlogService blogService;
+  private final Random timeRandom;
 
   public DemoInitializer(BlogService blogService) {
     this.blogService = Objects.requireNonNull(blogService, "blogService");
+    timeRandom = new Random(164567243167435231L);
   }
 
   @PostConstruct
@@ -53,12 +55,12 @@ public final class DemoInitializer {
         blogService.addBlogEntry(createBlogEntry("Ivory Aul", tags[2])),
     };
 
-    log.info("Added blog entries={}", blogEntryIds);
+    log.info("Added blog entries={}", Arrays.asList(blogEntryIds));
   }
 
   private BlogletDb.BlogEntry createBlogEntry(String title, String... tagIds) {
     final Random random = new Random(title.hashCode());
-    final StringBuilder contentBuilder = new StringBuilder(4096);
+    final StringBuilder contentBuilder = new StringBuilder(8192);
     final int contentSize = random.nextInt(3096) + 1000;
     for (int w = 0, wlen = 0, s = 0, slen = 0; contentBuilder.length() < contentSize; ++w, ++s) {
       if (wlen == 0 || w == wlen) {
@@ -79,14 +81,21 @@ public final class DemoInitializer {
       contentBuilder.append((char) ('a' + random.nextInt(26)));
     }
 
-    final long now = System.currentTimeMillis();
+    final String contents = contentBuilder.toString();
+    final String shortContents = contentBuilder.substring(0, 120);
+
+    final long dateCreated = 1380628471120L + (timeRandom.nextLong() % 102158471120L);
     return BlogletDb.BlogEntry.newBuilder()
         .setTitle(title)
-        .setDateCreated(now)
-        .setDateUpdated(now)
-        .setContents(contentBuilder.toString())
-        .setShortContents(contentBuilder.substring(0, 120))
+        .setDateCreated(dateCreated)
+        .setDateUpdated(dateCreated)
+        .setContents(toHtml(contents))
+        .setShortContents(toHtml(shortContents))
         .addAllTagIds(Arrays.asList(tagIds))
         .build();
+  }
+
+  private static String toHtml(String text) {
+    return "<div>\n<p>" + text.replaceAll("\\n", "</p>\n<p>") + "</p>\n</div>\n";
   }
 }
