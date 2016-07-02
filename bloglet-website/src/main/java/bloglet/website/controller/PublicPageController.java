@@ -5,6 +5,7 @@ import bloglet.website.service.BlogService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -28,8 +29,8 @@ public final class PublicPageController {
     return new ModelAndView("page/index", "posts", posts);
   }
 
-  @RequestMapping("/tag/{tagId}")
-  public ModelAndView tag(@PathVariable("tagId") String tagId) {
+  @RequestMapping("/tag")
+  public ModelAndView tag(@RequestParam("id") String tagId) {
     final Map<String, Object> model = new HashMap<>();
     model.put("tag", blogService.getTag(tagId));
     model.put("posts", blogService.getBlogPostsForTag(tagId, 0, BlogService.MAX_LIMIT));
@@ -37,8 +38,8 @@ public final class PublicPageController {
     return new ModelAndView("page/tag", model);
   }
 
-  @RequestMapping("/post/{postId}")
-  public ModelAndView blogPost(@PathVariable("postId") String postId) {
+  @RequestMapping("/post")
+  public ModelAndView blogPost(@RequestParam("id") String postId) {
     return new ModelAndView("page/post", "post", blogService.getBlogPost(postId));
   }
 

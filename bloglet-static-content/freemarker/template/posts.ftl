@@ -1,14 +1,14 @@
 
 <#macro blogPost id title dateCreated shortContents contents tags>
 <div class="post-entry">
-  <h3><a href="/g/post/${id}">${title?html}</a></h3>
+  <h3><a href="/g/post?id=${id?url}">${title?html}</a></h3>
   ${shortContents}
-  <p><a href="/g/post/${id}">Read More...</a></p>
+  <p><a href="/g/post?id=${id?url}">Read More...</a></p>
   <div class="entry-footer">
     <ul class="list-inline pull-left">
       <li>Tags:</li>
       <#list tags as tag>
-        <li><a href="/g/tag/${tag.id}">${tag.name}</a></li>
+        <li><a href="/g/tag?id=${tag.id?url}">${tag.name}</a></li>
       </#list>
     </ul>
     <span class="pull-right text-muted">${dateCreated?number_to_datetime}</span>

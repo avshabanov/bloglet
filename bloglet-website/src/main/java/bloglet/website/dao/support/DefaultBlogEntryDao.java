@@ -3,6 +3,7 @@ package bloglet.website.dao.support;
 import bloglet.model.BlogletDb;
 import bloglet.website.dao.BlogEntryDao;
 import com.truward.tupl.protobuf.ProtobufModelPersistentMapDao;
+import com.truward.tupl.support.id.Key;
 import com.truward.tupl.support.transaction.TuplTransactionManager;
 
 import javax.annotation.Nonnull;
@@ -20,7 +21,7 @@ public final class DefaultBlogEntryDao extends ProtobufModelPersistentMapDao<Blo
 
   @Nonnull
   @Override
-  protected BlogletDb.BlogEntry toValue(@Nonnull String id, @Nonnull byte[] contents) throws IOException {
+  protected BlogletDb.BlogEntry toValue(@Nonnull Key id, @Nonnull byte[] contents) throws IOException {
     return BlogletDb.BlogEntry.parseFrom(contents);
   }
 }

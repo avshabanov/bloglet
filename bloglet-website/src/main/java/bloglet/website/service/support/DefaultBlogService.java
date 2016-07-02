@@ -8,7 +8,7 @@ import bloglet.website.service.BlogService;
 import com.truward.tupl.support.AbstractTuplDaoSupport;
 import com.truward.tupl.support.exception.InternalErrorDaoException;
 import com.truward.tupl.support.exception.KeyNotFoundException;
-import com.truward.tupl.support.id.IdSupport;
+import com.truward.tupl.support.id.Key;
 import com.truward.tupl.support.map.PersistentMapDao;
 import com.truward.tupl.support.transaction.TuplTransactionManager;
 import org.slf4j.Logger;
@@ -16,10 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class DefaultBlogService extends AbstractTuplDaoSupport implements BlogService, IdSupport {
+public final class DefaultBlogService extends AbstractTuplDaoSupport implements BlogService {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final BlogEntryDao blogEntryDao;
@@ -45,11 +48,11 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
     final int actualLimit = checkOffsetAndLimit(offset, limit);
     return withTransaction(tx -> {
       // use time index to query blog posts ordered by date in descending order
-      final List<Map.Entry<String, BlogletDb.BlogEntry>> blogPostEntries = blogEntryTimeIndexDao
+      final List<Map.Entry<Key, BlogletDb.BlogEntry>> blogPostEntries = blogEntryTimeIndexDao
           .getEntries(offset, actualLimit, false)
           .stream()
           .map(entry -> {
-            final String blogEntryKey = entry.getValue();
+            final Key blogEntryKey = Key.fromBase64(entry.getValue());
             final BlogletDb.BlogEntry blogEntry = blogEntryDao.get(blogEntryKey);
             if (blogEntry == null) {
               throw new InternalErrorDaoException("BlogEntryTime index is broken, unknown key=" + blogEntryKey);
@@ -65,9 +68,9 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
   @Nonnull
   @Override
   public List<Bloglet.Tag> getTags() {
-    final List<Map.Entry<String, BlogletDb.TagEntry>> entries = new ArrayList<>(20);
-    for (String offset = null;;) {
-      final List<Map.Entry<String, BlogletDb.TagEntry>> tmpEntries = tagEntryDao.getEntries(offset, MAX_LIMIT);
+    final List<Map.Entry<Key, BlogletDb.TagEntry>> entries = new ArrayList<>(20);
+    for (Key offset = null;;) {
+      final List<Map.Entry<Key, BlogletDb.TagEntry>> tmpEntries = tagEntryDao.getEntries(offset, MAX_LIMIT);
       entries.addAll(tmpEntries);
       if (tmpEntries.size() < MAX_LIMIT) {
         break;
@@ -78,7 +81,7 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
     return entries
         .stream()
         .map(entry -> Bloglet.Tag.newBuilder()
-            .setId(entry.getKey())
+            .setId(entry.getKey().toBase64())
             .setName(entry.getValue().getName())
             .build())
         .collect(Collectors.toList());
@@ -89,14 +92,14 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
   public List<Bloglet.BlogPost> getBlogPostsForTag(@Nonnull String tagId, int offset, int limit) {
     final int actualLimit = checkOffsetAndLimit(offset, limit);
     return withTransaction(tx -> {
-      final BlogletDb.TagEntry tagEntry = tagEntryDao.get(tagId);
+      final BlogletDb.TagEntry tagEntry = tagEntryDao.get(Key.fromBase64(tagId));
       if (tagEntry == null) {
         throw new KeyNotFoundException("Unknown tag with id=" + tagId);
       }
 
-      final List<Map.Entry<String, BlogletDb.BlogEntry>> entries = tagEntry.getBlogEntryIdsList()
+      final List<Map.Entry<Key, BlogletDb.BlogEntry>> entries = tagEntry.getBlogEntryIdsList()
           .stream()
-          .map(id -> new AbstractMap.SimpleImmutableEntry<>(id, blogEntryDao.get(id)))
+          .map(id -> new AbstractMap.SimpleImmutableEntry<>(Key.fromBase64(id), blogEntryDao.get(Key.fromBase64(id))))
           .sorted((lhs, rhs) -> Long.compare(rhs.getValue().getDateCreated(), lhs.getValue().getDateCreated()))
           .skip(offset)
           .limit(actualLimit)
@@ -109,17 +112,17 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
   @Nonnull
   @Override
   public Bloglet.BlogPost getBlogPost(@Nonnull String blogPostId) {
-    final BlogletDb.BlogEntry blogEntry = blogEntryDao.get(blogPostId);
+    final BlogletDb.BlogEntry blogEntry = blogEntryDao.get(Key.fromBase64(blogPostId));
     if (blogEntry == null) {
       throw new KeyNotFoundException("Unknown blogPostId=" + blogPostId);
     }
-    return getPostFromEntry(blogPostId, blogEntry);
+    return getPostFromEntry(Key.fromBase64(blogPostId), blogEntry);
   }
 
   @Nonnull
   @Override
   public Bloglet.Tag getTag(@Nonnull String tagId) {
-    final BlogletDb.TagEntry tagEntry = tagEntryDao.get(tagId);
+    final BlogletDb.TagEntry tagEntry = tagEntryDao.get(Key.fromBase64(tagId));
     if (tagEntry == null) {
       throw new KeyNotFoundException("Unknown tagId=" + tagId);
     }
@@ -134,9 +137,9 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
     }
 
     return withTransaction(tx -> {
-      final String id = generateId();
+      final Key id = Key.random();
       tagEntryDao.put(id, BlogletDb.TagEntry.newBuilder().setName(tagName).build());
-      return id;
+      return id.toBase64();
     });
   }
 
@@ -144,26 +147,29 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
   @Override
   public String addBlogEntry(@Nonnull BlogletDb.BlogEntry blogEntry) {
     return withTransaction(tx -> {
-      final String id = generateId();
+      final Key id = Key.random();
 
       // Consistency check: tags in this blog entry should exist
       // Also: maintaining n-m relationship between blog posts and tags
       for (final String tagId : blogEntry.getTagIdsList()) {
-        final BlogletDb.TagEntry tagEntry = tagEntryDao.get(tagId);
+        final Key tagIdKey = Key.fromBase64(tagId);
+        final BlogletDb.TagEntry tagEntry = tagEntryDao.get(tagIdKey);
         if (tagEntry == null) {
           throw new KeyNotFoundException("Unknown tag with id=" + tagId);
         }
 
         // update tag->blog entry relationship
-        tagEntryDao.put(tagId, BlogletDb.TagEntry.newBuilder(tagEntry)
-            .addBlogEntryIds(id)
+        tagEntryDao.put(tagIdKey, BlogletDb.TagEntry.newBuilder(tagEntry)
+            .addBlogEntryIds(id.toBase64())
             .build());
       }
 
       // Persist given entry to DB
       blogEntryDao.put(id, blogEntry);
-      blogEntryTimeIndexDao.put(getBlogEntryTimeKey(id, blogEntry), id);
-      return id;
+
+      final String idStr = id.toBase64();
+      blogEntryTimeIndexDao.put(getBlogEntryTimeKey(id, blogEntry), idStr);
+      return idStr;
     });
   }
 
@@ -172,20 +178,30 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
   //
 
   @Nonnull
-  private static String getBlogEntryTimeKey(@Nonnull String id, @Nonnull BlogletDb.BlogEntry blogEntry) {
-    return String.format("%16X-%s", blogEntry.getDateCreated(), id);
+  private static Key getBlogEntryTimeKey(@Nonnull Key id, @Nonnull BlogletDb.BlogEntry blogEntry) {
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream(17 + id.getByteSize())) {
+      try (final DataOutputStream dos = new DataOutputStream(baos)) {
+        dos.writeLong(blogEntry.getDateCreated());
+        dos.writeByte('-');
+        dos.write(id.getBytesNoCopy());
+      }
+
+      return Key.inplace(baos.toByteArray());
+    } catch (IOException e) {
+      throw new IllegalStateException(e); // should never happen
+    }
   }
 
   @Nonnull
-  private List<Bloglet.BlogPost> getPostByEntries(@Nonnull List<Map.Entry<String, BlogletDb.BlogEntry>> entries) {
+  private List<Bloglet.BlogPost> getPostByEntries(@Nonnull List<Map.Entry<Key, BlogletDb.BlogEntry>> entries) {
     return entries.stream().map(entry -> getPostFromEntry(entry.getKey(), entry.getValue()))
         .collect(Collectors.toList());
   }
 
   @Nonnull
-  private Bloglet.BlogPost getPostFromEntry(@Nonnull String id, @Nonnull BlogletDb.BlogEntry blogEntry) {
+  private Bloglet.BlogPost getPostFromEntry(@Nonnull Key id, @Nonnull BlogletDb.BlogEntry blogEntry) {
     return Bloglet.BlogPost.newBuilder()
-        .setId(id)
+        .setId(id.toBase64())
         .setContents(blogEntry)
         .addAllTags(toTags(blogEntry.getTagIdsList()))
         .build();
@@ -216,7 +232,7 @@ public final class DefaultBlogService extends AbstractTuplDaoSupport implements 
     return tagIds
         .stream()
         .map(tagId -> {
-          final BlogletDb.TagEntry tagEntry = tagEntryDao.get(tagId);
+          final BlogletDb.TagEntry tagEntry = tagEntryDao.get(Key.fromBase64(tagId));
           if (tagEntry == null) {
             throw new KeyNotFoundException("Unknown tag with id=" + tagId);
           }
